@@ -917,7 +917,7 @@ class Transformer(tf.keras.layers.Layer):
     inputs = tf_utils.pack_inputs([input_tensor, attention_mask])
     return super(Transformer, self).__call__(inputs=inputs, **kwargs)
 
-  def call(self, inputs, return_all_layers=False, **kwargs):
+  def call(self, inputs, return_all_layers=True, **kwargs):
     """Implements call() for the layer.
 
     Args:

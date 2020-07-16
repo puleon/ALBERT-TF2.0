@@ -213,7 +213,7 @@ class AlbertModel(tf.keras.layers.Layer):
     inputs = tf_utils.pack_inputs([input_word_ids, input_mask, input_type_ids])
     return super(AlbertModel, self).__call__(inputs, **kwargs)
 
-  def call(self, inputs, mode="bert", **kwargs):
+  def call(self, inputs, mode="encoder", **kwargs):
     """Implements call() for the layer.
 
     Args:
@@ -240,7 +240,7 @@ class AlbertModel(tf.keras.layers.Layer):
 
     if mode == "encoder":
       return self.encoder(
-          embedding_tensor, attention_mask, return_all_layers=True)
+          embedding_tensor, attention_mask)
 
     if self.output_attentions:
       sequence_output, attention_weights = self.encoder(embedding_tensor, attention_mask)

@@ -159,12 +159,13 @@ class AlbertModel(tf.keras.layers.Layer):
   ```
   """
 
-  def __init__(self, config, float_type=tf.float32, **kwargs):
+  def __init__(self, config, float_type=tf.float32, output_attentions=False, **kwargs):
     super(AlbertModel, self).__init__(**kwargs)
     self.config = (
         AlbertConfig.from_dict(config)
         if isinstance(config, dict) else copy.deepcopy(config))
     self.float_type = float_type
+    self.output_attentions = output_attentions
 
   def build(self, unused_input_shapes):
     """Implements build() for the layer."""
@@ -195,6 +196,7 @@ class AlbertModel(tf.keras.layers.Layer):
         initializer_range=self.config.initializer_range,
         backward_compatible=self.config.backward_compatible,
         float_type=self.float_type,
+        output_attentions=self.output_attentions,
         name="encoder")
     self.pooler_transform = tf.keras.layers.Dense(
         units=self.config.hidden_size,
@@ -240,10 +242,16 @@ class AlbertModel(tf.keras.layers.Layer):
       return self.encoder(
           embedding_tensor, attention_mask, return_all_layers=True)
 
-    sequence_output = self.encoder(embedding_tensor, attention_mask)
+    if self.output_attentions:
+      sequence_output, attention_weights = self.encoder(embedding_tensor, attention_mask)
+    else:
+        sequence_output = self.encoder(embedding_tensor, attention_mask)
     first_token_tensor = tf.squeeze(sequence_output[:, 0:1, :], axis=1)
     pooled_output = self.pooler_transform(first_token_tensor)
-    return (pooled_output, sequence_output)
+    if self.output_attentions:
+      return (pooled_output, sequence_output, attention_weights)
+    else:
+      return (pooled_output, sequence_output)
 
   def get_config(self):
     config = {"config": self.config.to_dict()}
@@ -424,6 +432,7 @@ class Attention(tf.keras.layers.Layer):
                attention_probs_dropout_prob=0.0,
                initializer_range=0.02,
                backward_compatible=False,
+               output_attentions=False,
                **kwargs):
     super(Attention, self).__init__(**kwargs)
     self.num_attention_heads = num_attention_heads
@@ -431,6 +440,7 @@ class Attention(tf.keras.layers.Layer):
     self.attention_probs_dropout_prob = attention_probs_dropout_prob
     self.initializer_range = initializer_range
     self.backward_compatible = backward_compatible
+    self.output_attentions = output_attentions
 
   def build(self, unused_input_shapes):
     """Implements build() for the layer."""
@@ -507,7 +517,10 @@ class Attention(tf.keras.layers.Layer):
     # `context_layer` = [B, F, N, H]
     context_tensor = tf.einsum("BNFT,BTNH->BFNH", attention_probs, value_tensor)
 
-    return context_tensor
+    if self.output_attentions:
+        return context_tensor, attention_probs
+    else:
+        return context_tensor
 
   def _projection_dense_layer(self, name):
     """A helper to define a projection layer."""
@@ -734,6 +747,7 @@ class TransformerBlock(tf.keras.layers.Layer):
                initializer_range=0.02,
                backward_compatible=False,
                float_type=tf.float32,
+               output_attentions=False,
                **kwargs):
     super(TransformerBlock, self).__init__(**kwargs)
     self.hidden_size = hidden_size
@@ -746,6 +760,7 @@ class TransformerBlock(tf.keras.layers.Layer):
     self.initializer_range = initializer_range
     self.backward_compatible = backward_compatible
     self.float_type = float_type
+    self.output_attentions = output_attentions
 
     if self.hidden_size % self.num_attention_heads != 0:
       raise ValueError(
@@ -761,6 +776,7 @@ class TransformerBlock(tf.keras.layers.Layer):
         attention_probs_dropout_prob=self.attention_probs_dropout_prob,
         initializer_range=self.initializer_range,
         backward_compatible=self.backward_compatible,
+        output_attentions=self.output_attentions,
         name="self_attention")
     self.attention_output_dense = Dense3D(
         num_attention_heads=self.num_attention_heads,
@@ -808,10 +824,16 @@ class TransformerBlock(tf.keras.layers.Layer):
   def call(self, inputs, **kwargs):
     """Implements call() for the layer."""
     (input_tensor, attention_mask) = tf_utils.unpack_inputs(inputs)
-    attention_output = self.attention_layer(
-        from_tensor=input_tensor,
-        to_tensor=input_tensor,
-        attention_mask=attention_mask,**kwargs)
+    if self.output_attentions:
+        attention_output, attention_weights = self.attention_layer(
+            from_tensor=input_tensor,
+            to_tensor=input_tensor,
+            attention_mask=attention_mask,**kwargs)
+    else:
+        attention_output = self.attention_layer(
+            from_tensor=input_tensor,
+            to_tensor=input_tensor,
+            attention_mask=attention_mask,**kwargs)
     attention_output = self.attention_output_dense(attention_output)
     attention_output = self.attention_dropout(attention_output,training=kwargs.get('training', False))
     # Use float32 in keras layer norm and the gelu activation in the
@@ -829,7 +851,10 @@ class TransformerBlock(tf.keras.layers.Layer):
     layer_output = self.output_layer_norm(layer_output + attention_output)
     if self.float_type == tf.float16:
       layer_output = tf.cast(layer_output, tf.float16)
-    return layer_output
+    if self.output_attentions:
+        return layer_output, attention_weights
+    else:
+        return layer_output
 
 
 class Transformer(tf.keras.layers.Layer):
@@ -855,6 +880,7 @@ class Transformer(tf.keras.layers.Layer):
                initializer_range=0.02,
                backward_compatible=False,
                float_type=tf.float32,
+               output_attentions=False,
                **kwargs):
     super(Transformer, self).__init__(**kwargs)
     self.num_hidden_layers = num_hidden_layers
@@ -868,6 +894,7 @@ class Transformer(tf.keras.layers.Layer):
     self.initializer_range = initializer_range
     self.backward_compatible = backward_compatible
     self.float_type = float_type
+    self.output_attentions = output_attentions
 
   def build(self, unused_input_shapes):
     """Implements build() for the layer."""
@@ -882,6 +909,7 @@ class Transformer(tf.keras.layers.Layer):
         initializer_range=self.initializer_range,
         backward_compatible=self.backward_compatible,
         float_type=self.float_type,
+        output_attentions=self.output_attentions,
         name=("shared_layer"))
     super(Transformer, self).build(unused_input_shapes)
 
@@ -905,14 +933,24 @@ class Transformer(tf.keras.layers.Layer):
     output_tensor = input_tensor
 
     all_layer_outputs = []
+    attention_weights = []
     for i in range(self.num_hidden_layers):
-      output_tensor = self.shared_layer(output_tensor, attention_mask,**kwargs)
+      if self.output_attentions:
+        output_tensor, aw = self.shared_layer(output_tensor, attention_mask,**kwargs)
+        attention_weights.append(aw)
+      else:
+        output_tensor = self.shared_layer(output_tensor, attention_mask, **kwargs)
       all_layer_outputs.append(output_tensor)
 
     if return_all_layers:
-      return all_layer_outputs
-
-    return all_layer_outputs[-1]
+      if self.output_attentions:
+        return all_layer_outputs, attention_weights
+      else:
+        return all_layer_outputs
+    if self.output_attentions:
+      return all_layer_outputs[-1], attention_weights[-1]
+    else:
+      return all_layer_outputs[-1]
 
 
 def get_initializer(initializer_range=0.02):

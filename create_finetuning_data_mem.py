@@ -22,7 +22,7 @@ import tensorflow as tf
 from absl import app, flags, logging
 
 import classifier_data_lib
-import squad_lib
+import squad_lib_mem
 
 FLAGS = flags.FLAGS
 
@@ -56,6 +56,8 @@ flags.DEFINE_integer(
     "max_query_length", 64,
     "The maximum number of tokens for the question. Questions longer than "
     "this will be truncated to this length.")
+
+flags.DEFINE_integer("mem_size", 20, "Maximum sequence length.")
 
 flags.DEFINE_bool(
     "version_2_with_negative", False,
@@ -125,10 +127,10 @@ def generate_classifier_dataset():
 def generate_squad_dataset():
     """Generates squad training dataset and returns input meta data."""
     assert FLAGS.squad_data_file
-    return squad_lib.generate_tf_record_from_json_file(
+    return squad_lib_mem.generate_tf_record_from_json_file(
         FLAGS.squad_data_file, FLAGS.spm_model_file, FLAGS.train_data_output_path,
         FLAGS.max_seq_length, FLAGS.do_lower_case, FLAGS.max_query_length,
-        FLAGS.doc_stride, FLAGS.version_2_with_negative)
+        FLAGS.doc_stride, FLAGS.version_2_with_negative, FLAGS.mem_size)
 
 
 def main(_):

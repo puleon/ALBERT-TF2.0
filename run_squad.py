@@ -237,11 +237,7 @@ class ALBertQALayer(tf.keras.layers.Layer):
 
     def call(self, inputs, **kwargs):
         """Implements call() for the layer."""
-        print('inputs')
-        print(inputs)
         unpacked_inputs = tf_utils.unpack_inputs(inputs)
-        print('unpacked_inputs')
-        print(unpacked_inputs)
         sequence_output = unpacked_inputs[0]
         p_mask = unpacked_inputs[1]
         cls_index = unpacked_inputs[2]
@@ -252,10 +248,6 @@ class ALBertQALayer(tf.keras.layers.Layer):
 
         start_logits = self.start_logits_proj_layer(sequence_output)
         start_logits = tf.transpose(tf.squeeze(start_logits, -1), [1, 0])
-        print('p_mask_shape')
-        print(p_mask.shape)
-        print('start_logits_shape')
-        print(start_logits.shape)
         start_logits_masked = start_logits * (1 - p_mask) - 1e30 * p_mask
         start_log_probs = tf.nn.log_softmax(start_logits_masked, -1)
 

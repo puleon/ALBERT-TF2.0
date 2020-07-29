@@ -53,7 +53,7 @@ def file_based_input_fn_builder(input_file, name_to_features):
     if isinstance(input_file, str) or len(input_file) == 1:
       options = tf.data.Options()
       # options.experimental_distribute.auto_shard = False
-      options.experimental_distribute.auto_shard_policy = 'OFF'
+      options.experimental_distribute.auto_shard_policy = tf.data.experimental.AutoShardPolicy.OFF
       d = d.with_options(options)
     return d
 

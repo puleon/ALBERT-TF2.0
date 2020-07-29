@@ -351,7 +351,7 @@ class ALBertQAModel(tf.keras.Model):
         if init_checkpoint != None:
             # self.albert_model.load_weights(init_checkpoint)
             checkpoint = tf.train.Checkpoint(model=self.albert_model)
-            # checkpoint.restore(init_checkpoint).assert_existing_objects_matched()
+            checkpoint.restore(init_checkpoint).assert_existing_objects_matched()
             checkpoint.restore(init_checkpoint).expect_partial()
         self.qalayer = ALBertQALayer(self.albert_config.hidden_size, start_n_top, end_n_top,
                                      self.initializer, dropout)
@@ -831,8 +831,8 @@ def main(_):
     if FLAGS.strategy_type == 'mirror':
         strategy = tf.distribute.MirroredStrategy()
     elif FLAGS.strategy_type == 'one':
-        print(tf.config.list_physical_devices())
-        strategy = tf.distribute.OneDeviceStrategy('/physical_device:XLA_GPU:0')
+        # print(tf.config.list_physical_devices())
+        strategy = tf.distribute.OneDeviceStrategy('GPU:0')
     else:
         raise ValueError('The distribution strategy type is not supported: %s' %
                          FLAGS.strategy_type)

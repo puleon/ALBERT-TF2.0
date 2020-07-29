@@ -478,7 +478,7 @@ def get_raw_results(predictions):
                                                     predictions['end_logits']):
         for values in zip(unique_ids.numpy(), start_logits.numpy(),
                           end_logits.numpy()):
-            yield squad_lib.RawResult(
+            yield squad_lib_mem.RawResult(
                 unique_id=values[0],
                 start_logits=values[1].tolist(),
                 end_logits=values[2].tolist())
@@ -492,7 +492,7 @@ def get_raw_results_v2(predictions):
                                                     predictions['end_top_index'],
                                                     predictions['cls_logits']):
         for values in zip(unique_ids.numpy(), start_top_log_probs.numpy(), start_top_index.numpy(), end_top_log_probs.numpy(), end_top_index.numpy(), cls_logits.numpy()):
-            yield squad_lib.RawResultV2(
+            yield squad_lib_mem.RawResultV2(
                 unique_id=values[0],
                 start_top_log_probs=values[1].tolist(),
                 start_top_index=values[2].tolist(),
@@ -750,14 +750,14 @@ def predict_squad(strategy, input_meta_data):
     doc_stride = input_meta_data['doc_stride']
     max_query_length = input_meta_data['max_query_length']
 
-    eval_examples = squad_lib.read_squad_examples(
+    eval_examples = squad_lib_mem.read_squad_examples(
         input_file=FLAGS.predict_file,
         is_training=False)
 
     tokenizer = tokenization.FullTokenizer(vocab_file=None,
                                            spm_model_file=FLAGS.spm_model_file, do_lower_case=FLAGS.do_lower_case)
 
-    eval_writer = squad_lib.FeatureWriter(
+    eval_writer = squad_lib_mem.FeatureWriter(
         filename=os.path.join(FLAGS.model_dir, 'eval.tf_record'),
         is_training=False)
     eval_features = []
@@ -794,7 +794,7 @@ def predict_squad(strategy, input_meta_data):
     output_null_log_odds_file = os.path.join(FLAGS.model_dir, 'null_odds.json')
 
     if FLAGS.version_2_with_negative:
-        squad_lib.write_predictions_v2(
+        squad_lib_mem.write_predictions_v2(
             eval_examples,
             eval_features,
             all_results,
@@ -807,7 +807,7 @@ def predict_squad(strategy, input_meta_data):
             FLAGS.end_n_top
         )
     else:
-        squad_lib.write_predictions(
+        squad_lib_mem.write_predictions(
             eval_examples,
             eval_features,
             all_results,

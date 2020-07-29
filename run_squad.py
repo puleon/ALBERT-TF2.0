@@ -26,7 +26,7 @@ import tensorflow as tf
 from absl import app, flags, logging
 
 import input_pipeline
-import squad_lib
+import squad_lib_mem
 import tokenization
 from utils import tf_utils
 from albert import AlbertConfig, AlbertModel
@@ -770,7 +770,7 @@ def predict_squad(strategy, input_meta_data):
     # of examples must be a multiple of the batch size, or else examples
     # will get dropped. So we pad with fake examples which are ignored
     # later on.
-    dataset_size = squad_lib.convert_examples_to_features(
+    dataset_size = squad_lib_mem.convert_examples_to_features(
         examples=eval_examples,
         tokenizer=tokenizer,
         max_seq_length=input_meta_data['max_seq_length'],

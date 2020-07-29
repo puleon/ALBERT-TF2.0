@@ -437,7 +437,7 @@ def convert_examples_to_features(examples, tokenizer, max_seq_length,
       token_is_max_context = {}
       segment_ids = []
       p_mask = []
-      cls_index = 0
+      cls_index = mem_size
 
       cur_tok_start_to_orig_index = []
       cur_tok_end_to_orig_index = []
@@ -511,7 +511,7 @@ def convert_examples_to_features(examples, tokenizer, max_seq_length,
           end_position = 0
           span_is_impossible = True
         else:
-          doc_offset = len(query_tokens) + 2
+          doc_offset = len(query_tokens) + 2 + mem_size
           start_position = tok_start_position - doc_start + doc_offset
           end_position = tok_end_position - doc_start + doc_offset
 

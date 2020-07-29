@@ -831,6 +831,7 @@ def main(_):
     if FLAGS.strategy_type == 'mirror':
         strategy = tf.distribute.MirroredStrategy()
     elif FLAGS.strategy_type == 'one':
+        print(tf.config.list_physical_devices())
         strategy = tf.distribute.OneDeviceStrategy('gpu:0')
     else:
         raise ValueError('The distribution strategy type is not supported: %s' %

@@ -237,7 +237,11 @@ class ALBertQALayer(tf.keras.layers.Layer):
 
     def call(self, inputs, **kwargs):
         """Implements call() for the layer."""
+        print('inputs')
+        print(inputs)
         unpacked_inputs = tf_utils.unpack_inputs(inputs)
+        print('unpacked_inputs')
+        print(unpacked_inputs)
         sequence_output = unpacked_inputs[0]
         p_mask = unpacked_inputs[1]
         cls_index = unpacked_inputs[2]

@@ -777,7 +777,8 @@ def predict_squad(strategy, input_meta_data):
         doc_stride=doc_stride,
         max_query_length=max_query_length,
         is_training=False,
-        output_fn=_append_feature)
+        output_fn=_append_feature,
+        mem_size=FLAGS.mem_size)
     eval_writer.close()
 
     logging.info('***** Running predictions *****')

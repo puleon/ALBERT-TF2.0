@@ -194,7 +194,10 @@ def get_model(albert_config, max_seq_length, num_labels, init_checkpoint, learni
     albert_model = tf.keras.Model(inputs=[input_word_ids,input_mask,input_type_ids],
                                   outputs=[pooled_output])
 
-    albert_model.load_weights(init_checkpoint)
+    # albert_model.load_weights(init_checkpoint)
+    checkpoint = tf.train.Checkpoint(model=albert_model)
+    # checkpoint.restore(init_checkpoint).assert_existing_objects_matched()
+    checkpoint.restore(init_checkpoint).expect_partial()
 
     initializer = tf.keras.initializers.TruncatedNormal(stddev=albert_config.initializer_range)
 

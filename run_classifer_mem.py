@@ -135,6 +135,13 @@ flags.DEFINE_bool("custom_training_loop",False,"Use Cutsom training loop instead
 
 flags.DEFINE_integer("seed", 42, "random_seed")
 
+flags.DEFINE_integer("max_steps", None,
+                   "Total number of training epochs to perform.")
+
+flags.DEFINE_integer("warmup_steps", None,
+                   "Total number of training epochs to perform.")
+
+
 def set_config_v2(enable_xla=False):
   """Config eager context according to flag values using TF 2.0 API."""
   if enable_xla:
@@ -289,9 +296,15 @@ def main(_):
   if FLAGS.do_train:
     len_train_examples = input_meta_data['train_data_size']
     steps_per_epoch = int(len_train_examples / FLAGS.train_batch_size)
-    num_train_steps = int(
+    if FLAGS.max_steps:
+      num_train_steps = FLAGS.max_steps
+    else:
+      num_train_steps = int(
         len_train_examples / FLAGS.train_batch_size * FLAGS.num_train_epochs)
-    num_warmup_steps = int(num_train_steps * FLAGS.warmup_proportion)
+    if FLAGS.warmup_steps:
+      num_warmup_steps = FLAGS.warmup_steps
+    else:
+        num_warmup_steps = int(num_train_steps * FLAGS.warmup_proportion)
 
   loss_multiplier = 1.0 / strategy.num_replicas_in_sync
 

@@ -298,6 +298,7 @@ def main(_):
     steps_per_epoch = int(len_train_examples / FLAGS.train_batch_size)
     if FLAGS.max_steps:
       num_train_steps = FLAGS.max_steps
+      FLAGS.num_train_epochs = num_train_steps * FLAGS.train_batch_size / len_train_examples
     else:
       num_train_steps = int(
         len_train_examples / FLAGS.train_batch_size * FLAGS.num_train_epochs)

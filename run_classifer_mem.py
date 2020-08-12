@@ -270,7 +270,7 @@ def get_model(albert_config, max_seq_length, num_labels, init_checkpoint, learni
         # model.compile(optimizer=optimizer,loss=loss_fct,metrics=['accuracy',
         #                 tfa.metrics.MatthewsCorrelationCoefficient(num_classes=num_labels)])
         model.compile(optimizer=optimizer,loss=loss_fct,metrics=['accuracy',
-                        mcc_metric, matt_custom])
+                        mcc_metric])
 
     return model
 
@@ -434,7 +434,7 @@ def main(_):
     with strategy.scope():
         loss,accuracy, matt_corr_stackov, matt_corr_custom = model.evaluate(evaluation_dataset)
 
-    print(f"loss : {loss}, Accuracy : {accuracy}, Matthew's Corr SO: {matt_corr_stackov}, Matthew's Corr Custom: {matt_corr_custom}")
+    print(f"loss : {loss}, Accuracy : {accuracy}, Matthew's Corr SO: {matt_corr_stackov}")
 
   if FLAGS.do_predict:
 

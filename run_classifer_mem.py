@@ -381,6 +381,10 @@ def main(_):
 
 
   if FLAGS.do_eval:
+    checkpoint_path = tf.train.latest_checkpoint(FLAGS.output_dir)
+    logging.info('Restoring checkpoints from %s', checkpoint_path)
+    checkpoint = tf.train.Checkpoint(model=model)
+    checkpoint.restore(checkpoint_path).expect_partial()
 
     len_eval_examples = input_meta_data['eval_data_size']
 

@@ -142,6 +142,23 @@ flags.DEFINE_integer("max_steps", None,
 flags.DEFINE_integer("warmup_steps", None,
                    "Total number of training epochs to perform.")
 
+def mcc_metric(y_true, logits):
+  predicted = tf.argmax(logits, axis=-1, output_type=tf.int32)
+  true_pos = tf.math.count_nonzero(predicted * y_true)
+  true_neg = tf.math.count_nonzero((predicted - 1) * (y_true - 1))
+  false_pos = tf.math.count_nonzero(predicted * (y_true - 1))
+  false_neg = tf.math.count_nonzero((predicted - 1) * y_true)
+  x = tf.cast((true_pos + false_pos) * (true_pos + false_neg)
+      * (true_neg + false_pos) * (true_neg + false_neg), tf.float32)
+  return tf.cast((true_pos * true_neg) - (false_pos * false_neg), tf.float32) / tf.sqrt(x)
+
+def matt_custom(y_true, logits):
+  predicted = tf.argmax(logits, axis=-1, output_type=tf.int32)
+  mcc = tfa.metrics.MatthewsCorrelationCoefficient(num_classes=1)
+  mcc.update_state(y_true, predicted)
+  return mcc.result()
+
+
 
 def set_config_v2(enable_xla=False):
   """Config eager context according to flag values using TF 2.0 API."""
@@ -249,8 +266,10 @@ def get_model(albert_config, max_seq_length, num_labels, init_checkpoint, learni
         model.compile(optimizer=optimizer,loss=loss_fct,metrics=['mse'])
     else:
         loss_fct = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
+        # model.compile(optimizer=optimizer,loss=loss_fct,metrics=['accuracy',
+        #                 tfa.metrics.MatthewsCorrelationCoefficient(num_classes=num_labels)])
         model.compile(optimizer=optimizer,loss=loss_fct,metrics=['accuracy',
-                        tfa.metrics.MatthewsCorrelationCoefficient(num_classes=num_labels)])
+                        mcc_metric, matt_custom])
 
     return model
 
@@ -412,9 +431,9 @@ def main(_):
         drop_remainder=False)
     evaluation_dataset = eval_input_fn()
     with strategy.scope():
-        loss,accuracy, matt_corr = model.evaluate(evaluation_dataset)
+        loss,accuracy, matt_corr_stackov, matt_corr_custom = model.evaluate(evaluation_dataset)
 
-    print(f"loss : {loss}, Accuracy : {accuracy}, Matthew's Corr : {matt_corr}")
+    print(f"loss : {loss}, Accuracy : {accuracy}, Matthew's Corr SO: {matt_corr_stackov}, Matthew's Corr Custom: {matt_corr_custom}")
 
   if FLAGS.do_predict:
 

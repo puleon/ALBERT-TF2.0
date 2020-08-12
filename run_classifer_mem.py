@@ -250,7 +250,7 @@ def get_model(albert_config, max_seq_length, num_labels, init_checkpoint, learni
     else:
         loss_fct = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
         model.compile(optimizer=optimizer,loss=loss_fct,metrics=['accuracy',
-                        tfa.metrics.MatthewsCorrelationCoefficient(num_classes=num_labels)])
+                        tfa.metrics.MatthewsCorrelationCoefficient(num_classes=num_labels-1)])
 
     return model
 

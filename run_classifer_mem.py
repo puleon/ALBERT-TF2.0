@@ -143,6 +143,7 @@ flags.DEFINE_integer("warmup_steps", None,
                    "Total number of training epochs to perform.")
 
 def mcc_metric(y_true, logits):
+  y_true = tf.cast(y_true, tf.int32)
   predicted = tf.argmax(logits, axis=-1, output_type=tf.int32)
   true_pos = tf.math.count_nonzero(predicted * y_true)
   true_neg = tf.math.count_nonzero((predicted - 1) * (y_true - 1))

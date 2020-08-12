@@ -175,13 +175,14 @@ def matt_custom(y_true, y_pred):
     numerator1 = true_positive * true_negative
     numerator2 = false_positive * false_negative
     numerator = numerator1 - numerator2
+    numberator = tf.cast(numerator, tf.float32)
     # denominator
     denominator1 = true_positive + false_positive
     denominator2 = true_positive + false_negative
     denominator3 = true_negative + false_positive
     denominator4 = true_negative + false_negative
     denominator = tf.math.sqrt(
-        denominator1 * denominator2 * denominator3 * denominator4
+        tf.cast(denominator1 * denominator2 * denominator3 * denominator4, tf.float32)
     )
     mcc = tf.math.divide_no_nan(numerator, denominator)
     return mcc

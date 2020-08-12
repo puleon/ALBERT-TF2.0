@@ -154,7 +154,7 @@ def mcc_metric(y_true, logits):
   return tf.cast((true_pos * true_neg) - (false_pos * false_neg), tf.float32) / tf.sqrt(x)
 
 def matt_custom(y_true, y_pred):
-    y_pred = tf.argmax(y_true, axis=-1, output_type=tf.int32)
+    y_true = tf.argmax(y_true, axis=-1, output_type=tf.int32)
     y_pred = tf.argmax(y_pred, axis=-1, output_type=tf.int32)
 
     true_positive = tf.math.count_nonzero(y_true * y_pred, 0)

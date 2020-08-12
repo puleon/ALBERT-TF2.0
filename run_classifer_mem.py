@@ -156,13 +156,11 @@ def mcc_metric(y_true, logits):
 def matt_custom(y_true, y_pred):
     y_pred = tf.argmax(y_true, axis=-1, output_type=tf.int32)
     y_pred = tf.argmax(y_pred, axis=-1, output_type=tf.int32)
-    y_true = tf.cast(y_true, dtype=tf.float32)
-    y_pred = tf.cast(y_pred, dtype=tf.float32)
 
     true_positive = tf.math.count_nonzero(y_true * y_pred, 0)
     # true_negative
-    y_true_negative = tf.math.not_equal(y_true, 1.0)
-    y_pred_negative = tf.math.not_equal(y_pred, 1.0)
+    y_true_negative = tf.math.not_equal(y_true, 1)
+    y_pred_negative = tf.math.not_equal(y_pred, 1)
     true_negative = tf.math.count_nonzero(
         tf.math.logical_and(y_true_negative, y_pred_negative), axis=0
     )

@@ -36,6 +36,7 @@ from albert import AlbertConfig, AlbertModel
 from input_pipeline import create_classifier_dataset
 from model_training_utils import run_customized_training_loop
 from optimization import LAMB, AdamWeightDecay, WarmUp
+import tensorflow_addons as tfa
 
 FLAGS = flags.FLAGS
 
@@ -248,7 +249,8 @@ def get_model(albert_config, max_seq_length, num_labels, init_checkpoint, learni
         model.compile(optimizer=optimizer,loss=loss_fct,metrics=['mse'])
     else:
         loss_fct = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
-        model.compile(optimizer=optimizer,loss=loss_fct,metrics=['accuracy'])
+        model.compile(optimizer=optimizer,loss=loss_fct,metrics=['accuracy',
+                                                                 tfa.metrics.MatthewsCorrelationCoefficient])
 
     return model
 
@@ -385,11 +387,18 @@ def main(_):
     logging.info("***** Running evaluation *****")
     logging.info("  Num examples = %d", len_eval_examples)
     logging.info("  Batch size = %d", FLAGS.eval_batch_size)
+    eval_input_fn = functools.partial(
+        create_classifier_dataset,
+        FLAGS.eval_data_path,
+        seq_length=FLAGS.max_seq_length,
+        batch_size=FLAGS.eval_batch_size,
+        is_training=False,
+        drop_remainder=False)
     evaluation_dataset = eval_input_fn()
     with strategy.scope():
-        loss,accuracy = model.evaluate(evaluation_dataset)
+        loss,accuracy, matt_corr = model.evaluate(evaluation_dataset)
 
-    print(f"loss : {loss} , Accuracy : {accuracy}")
+    print(f"loss : {loss}, Accuracy : {accuracy}, Matthew's Corr : {matt_corr}")
 
   if FLAGS.do_predict:
 

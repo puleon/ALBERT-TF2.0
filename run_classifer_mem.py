@@ -311,19 +311,20 @@ def main(_):
 
   loss_multiplier = 1.0 / strategy.num_replicas_in_sync
 
-  with strategy.scope():
-	  model = get_model(
-		  albert_config=albert_config,
-		  max_seq_length=FLAGS.max_seq_length,
-		  num_labels=num_labels,
-		  init_checkpoint=FLAGS.init_checkpoint,
-		  learning_rate=FLAGS.learning_rate,
-		  num_train_steps=num_train_steps,
-		  num_warmup_steps=num_warmup_steps,
-          loss_multiplier=loss_multiplier)
-  model.summary()
 
   if FLAGS.do_train:
+    with strategy.scope():
+      model = get_model(
+        albert_config=albert_config,
+        max_seq_length=FLAGS.max_seq_length,
+        num_labels=num_labels,
+        init_checkpoint=FLAGS.init_checkpoint,
+        learning_rate=FLAGS.learning_rate,
+        num_train_steps=num_train_steps,
+        num_warmup_steps=num_warmup_steps,
+        loss_multiplier=loss_multiplier)
+    model.summary()
+
     logging.info("***** Running training *****")
     logging.info("  Num examples = %d", len_train_examples)
     logging.info("  Batch size = %d", FLAGS.train_batch_size)
@@ -381,6 +382,17 @@ def main(_):
 
 
   if FLAGS.do_eval:
+    model = get_model(
+      albert_config=albert_config,
+      max_seq_length=FLAGS.max_seq_length,
+      num_labels=num_labels,
+      init_checkpoint=FLAGS.init_checkpoint,
+      learning_rate=FLAGS.learning_rate,
+      num_train_steps=num_train_steps,
+      num_warmup_steps=num_warmup_steps,
+      loss_multiplier=loss_multiplier)
+    model.summary()
+
     checkpoint_path = tf.train.latest_checkpoint(FLAGS.output_dir)
     logging.info('Restoring checkpoints from %s', checkpoint_path)
     checkpoint = tf.train.Checkpoint(model=model)

@@ -189,8 +189,8 @@ flags.DEFINE_integer("warmup_steps", None,
 
 class MattCustom(tfa.metrics.MatthewsCorrelationCoefficient):
 
-  def __init__(self, name='binary_true_positives', **kwargs):
-    super(tfa.metrics.MatthewsCorrelationCoefficient, self).__init__(name=name, **kwargs)
+  def __init__(self, **kwargs):
+    super(tfa.metrics.MatthewsCorrelationCoefficient, self).__init__(**kwargs)
 
   def update_state(self, y_true, y_pred, sample_weight=None):
     y_pred = tf.argmax(y_pred, axis=-1, output_type=tf.int32)

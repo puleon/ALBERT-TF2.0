@@ -142,50 +142,59 @@ flags.DEFINE_integer("max_steps", None,
 flags.DEFINE_integer("warmup_steps", None,
                    "Total number of training epochs to perform.")
 
-def mcc_metric(y_true, logits):
-  y_true = tf.cast(y_true, tf.int32)
-  predicted = tf.argmax(logits, axis=-1, output_type=tf.int32)
-  true_pos = tf.math.count_nonzero(predicted * y_true)
-  true_neg = tf.math.count_nonzero((predicted - 1) * (y_true - 1))
-  false_pos = tf.math.count_nonzero(predicted * (y_true - 1))
-  false_neg = tf.math.count_nonzero((predicted - 1) * y_true)
-  x = tf.cast((true_pos + false_pos) * (true_pos + false_neg)
-      * (true_neg + false_pos) * (true_neg + false_neg), tf.float32)
-  return tf.cast((true_pos * true_neg) - (false_pos * false_neg), tf.float32) / tf.sqrt(x)
+# def mcc_metric(y_true, logits):
+#   y_true = tf.cast(y_true, tf.int32)
+#   predicted = tf.argmax(logits, axis=-1, output_type=tf.int32)
+#   true_pos = tf.math.count_nonzero(predicted * y_true)
+#   true_neg = tf.math.count_nonzero((predicted - 1) * (y_true - 1))
+#   false_pos = tf.math.count_nonzero(predicted * (y_true - 1))
+#   false_neg = tf.math.count_nonzero((predicted - 1) * y_true)
+#   x = tf.cast((true_pos + false_pos) * (true_pos + false_neg)
+#       * (true_neg + false_pos) * (true_neg + false_neg), tf.float32)
+#   return tf.cast((true_pos * true_neg) - (false_pos * false_neg), tf.float32) / tf.sqrt(x)
+#
+# def matt_custom(y_true, y_pred):
+#     y_true = tf.argmax(y_true, axis=-1, output_type=tf.int32)
+#     y_pred = tf.argmax(y_pred, axis=-1, output_type=tf.int32)
+#
+#     true_positive = tf.math.count_nonzero(y_true * y_pred, 0)
+#     # true_negative
+#     y_true_negative = tf.math.not_equal(y_true, 1)
+#     y_pred_negative = tf.math.not_equal(y_pred, 1)
+#     true_negative = tf.math.count_nonzero(
+#         tf.math.logical_and(y_true_negative, y_pred_negative), axis=0
+#     )
+#     # predicted sum
+#     pred_sum = tf.math.count_nonzero(y_pred, 0)
+#     # Ground truth label sum
+#     true_sum = tf.math.count_nonzero(y_true, 0)
+#     false_positive = pred_sum - true_positive
+#     false_negative = true_sum - true_positive
+#
+#     # true positive state_update
+#     numerator1 = true_positive * true_negative
+#     numerator2 = false_positive * false_negative
+#     numerator = numerator1 - numerator2
+#     numberator = tf.cast(numerator, tf.float32)
+#     # denominator
+#     denominator1 = true_positive + false_positive
+#     denominator2 = true_positive + false_negative
+#     denominator3 = true_negative + false_positive
+#     denominator4 = true_negative + false_negative
+#     denominator = tf.math.sqrt(
+#         tf.cast(denominator1 * denominator2 * denominator3 * denominator4, tf.float32)
+#     )
+#     mcc = tf.math.divide_no_nan(numerator, denominator)
+#     return mcc
 
-def matt_custom(y_true, y_pred):
-    y_true = tf.argmax(y_true, axis=-1, output_type=tf.int32)
+class MattCustom(tfa.metrics.MatthewsCorrelationCoefficient):
+
+  def __init__(self, name='binary_true_positives', **kwargs):
+    super(tfa.metrics.MatthewsCorrelationCoefficient, self).__init__(name=name, **kwargs)
+
+  def update_state(self, y_true, y_pred, sample_weight=None):
     y_pred = tf.argmax(y_pred, axis=-1, output_type=tf.int32)
-
-    true_positive = tf.math.count_nonzero(y_true * y_pred, 0)
-    # true_negative
-    y_true_negative = tf.math.not_equal(y_true, 1)
-    y_pred_negative = tf.math.not_equal(y_pred, 1)
-    true_negative = tf.math.count_nonzero(
-        tf.math.logical_and(y_true_negative, y_pred_negative), axis=0
-    )
-    # predicted sum
-    pred_sum = tf.math.count_nonzero(y_pred, 0)
-    # Ground truth label sum
-    true_sum = tf.math.count_nonzero(y_true, 0)
-    false_positive = pred_sum - true_positive
-    false_negative = true_sum - true_positive
-
-    # true positive state_update
-    numerator1 = true_positive * true_negative
-    numerator2 = false_positive * false_negative
-    numerator = numerator1 - numerator2
-    numberator = tf.cast(numerator, tf.float32)
-    # denominator
-    denominator1 = true_positive + false_positive
-    denominator2 = true_positive + false_negative
-    denominator3 = true_negative + false_positive
-    denominator4 = true_negative + false_negative
-    denominator = tf.math.sqrt(
-        tf.cast(denominator1 * denominator2 * denominator3 * denominator4, tf.float32)
-    )
-    mcc = tf.math.divide_no_nan(numerator, denominator)
-    return mcc
+    super().update_state(y_true, y_pred)
 
 
 def set_config_v2(enable_xla=False):
@@ -296,9 +305,10 @@ def get_model(albert_config, max_seq_length, num_labels, init_checkpoint, learni
         loss_fct = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
         # model.compile(optimizer=optimizer,loss=loss_fct,metrics=['accuracy',
         #                 tfa.metrics.MatthewsCorrelationCoefficient(num_classes=num_labels)])
-        model.compile(optimizer=optimizer,loss=loss_fct,metrics=['accuracy',
-                        mcc_metric, matt_custom])
-
+        # model.compile(optimizer=optimizer,loss=loss_fct,metrics=['accuracy',
+        #                 mcc_metric, matt_custom])
+        model.compile(optimizer=optimizer, loss=loss_fct, metrics=['accuracy',
+                                                                   MattCustom(num_classes=1)])
     return model
 
 
@@ -459,9 +469,9 @@ def main(_):
         drop_remainder=False)
     evaluation_dataset = eval_input_fn()
     with strategy.scope():
-        loss,accuracy, matt_corr_stackov, matt_corr_custom = model.evaluate(evaluation_dataset)
+        loss,accuracy, matt_corr_custom = model.evaluate(evaluation_dataset)
 
-    print(f"loss : {loss}, Accuracy : {accuracy}, Matthew's Corr SO: {matt_corr_stackov}, Matthew's Corr custom: {matt_corr_custom}")
+    print(f"loss : {loss}, Accuracy : {accuracy}, Matthew's Corr custom: {matt_corr_custom}")
 
   if FLAGS.do_predict:
 

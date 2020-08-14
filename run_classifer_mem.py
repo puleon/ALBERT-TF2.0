@@ -104,6 +104,8 @@ flags.DEFINE_integer("mem_size", 20, "Maximum sequence length.")
 
 flags.DEFINE_float("classifier_dropout",0.1,"classification layer dropout")
 
+flags.DEFINE_float("albert_dropout",0.1,"classification layer dropout")
+
 flags.DEFINE_bool("do_train", False, "Whether to run training.")
 
 flags.DEFINE_bool("do_eval", False, "Whether to run eval on the dev set.")
@@ -281,6 +283,9 @@ def main(_):
         "At least one of `do_train`, `do_eval` or `do_predict' must be True.")
 
   albert_config = AlbertConfig.from_json_file(FLAGS.albert_config_file)
+
+  albert_config.attention_probs_dropout_prob = FLAGS.albert_dropout
+  albert_config.hidden_dropout_prob = FLAGS.albert_dropout
 
   if FLAGS.max_seq_length > albert_config.max_position_embeddings:
     raise ValueError(

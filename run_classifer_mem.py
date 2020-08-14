@@ -426,12 +426,12 @@ def main(_):
 
     with strategy.scope():
       logits = model.predict(evaluation_dataset)
-      predictions = tf.argmax(logits, axis=-1, output_type=tf.int32)
+      # predictions = tf.argmax(logits, axis=-1, output_type=tf.int32)
 
     output_predict_file = os.path.join(FLAGS.output_dir, "eval_results.tsv")
     with tf.io.gfile.GFile(output_predict_file, "w") as pred_writer:
-      for el in predictions:
-            pred_writer.write('{}\n'.format(el))
+      for el in logits:
+            pred_writer.write('\t'.join(map(str, el))+'\n')
 
   if FLAGS.do_predict:
     model = get_model(

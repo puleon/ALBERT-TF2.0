@@ -419,7 +419,7 @@ def main(_):
     output_predict_file = os.path.join(FLAGS.output_dir, "eval_results.tsv")
     with tf.io.gfile.GFile(output_predict_file, "w") as pred_writer:
       for el in predictions:
-            pred_writer.write('\t'.join(map(str, el)))
+            pred_writer.write('\t'.join(map(str, el)) + '\n')
 
   if FLAGS.do_predict:
     model = get_model(

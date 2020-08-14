@@ -413,6 +413,13 @@ def main(_):
         loss,accuracy, matt_corr = model.evaluate(evaluation_dataset)
 
     print(f"loss : {loss}, Accuracy : {accuracy}, Matthew's Corr custom: {matt_corr}")
+    with strategy.scope():
+      predictions = model.predict(evaluation_dataset)
+
+    output_predict_file = os.path.join(FLAGS.output_dir, "eval_results.tsv")
+    with tf.io.gfile.GFile(output_predict_file, "w") as pred_writer:
+      for el in predictions:
+            pred_writer.write('\t'.join(map(str, el)))
 
   if FLAGS.do_predict:
     model = get_model(

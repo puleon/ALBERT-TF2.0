@@ -659,7 +659,7 @@ def convert_single_example(ex_index, example, label_list, max_seq_length,
         label_id=0,
         is_real_example=False)
 
-  if FLAGS.classification_task_name.lower() != "sts":
+  if FLAGS.task_name.lower() != "sts":
     label_map = {}
     for (i, label) in enumerate(label_list):
       label_map[label] = i

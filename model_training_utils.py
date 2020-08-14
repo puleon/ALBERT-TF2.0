@@ -18,6 +18,7 @@ from __future__ import absolute_import, division, print_function
 
 import json
 import os
+from math import ceil
 
 import tensorflow as tf
 from absl import logging
@@ -172,7 +173,7 @@ def run_customized_training_loop(
     raise ValueError(
         'if `metric_fn` is specified, metric_fn must be a callable.')
 
-  total_training_steps = int(steps_per_epoch * epochs)
+  total_training_steps = ceil(steps_per_epoch * epochs)
 
   # To reduce unnecessary send/receive input pipeline operation, we place input
   # pipeline ops in worker task.

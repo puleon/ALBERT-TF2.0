@@ -417,7 +417,12 @@ def main(_):
     with strategy.scope():
         loss,accuracy, matt_corr = model.evaluate(evaluation_dataset)
 
-    print(f"loss : {loss}, Accuracy : {accuracy}, Matthew's Corr custom: {matt_corr}")
+    print(f"loss : {loss}, Accuracy : {accuracy}, Matthew's Corr: {matt_corr}")
+    output_metrics_file = os.path.join(FLAGS.output_dir, "eval_metrics.tsv")
+    with tf.io.gfile.GFile(output_metrics_file, "w") as pred_writer:
+      pred_writer.write('loss: {}\n'.format(loss))
+      pred_writer.write('Accuracy: {}\n'.format(loss))
+      pred_writer.write("Matthew's Corr: {}\n".format(loss))
 
     with strategy.scope():
       logits = model.predict(evaluation_dataset)

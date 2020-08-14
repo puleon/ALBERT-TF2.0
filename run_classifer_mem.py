@@ -251,8 +251,9 @@ def get_model(albert_config, max_seq_length, num_labels, init_checkpoint, learni
         model.compile(optimizer=optimizer,loss=loss_fct,metrics=['mse'])
     else:
         loss_fct = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
-        model.compile(optimizer=optimizer,loss=loss_fct,metrics=['accuracy',
-                        tfa.metrics.MatthewsCorrelationCoefficient(num_classes=num_labels)])
+        model.compile(optimizer=optimizer,loss=loss_fct,metrics=['accuracy'])
+        # model.compile(optimizer=optimizer,loss=loss_fct,metrics=['accuracy',
+        #                 tfa.metrics.MatthewsCorrelationCoefficient(num_classes=num_labels)])
     return model
 
 
@@ -415,14 +416,13 @@ def main(_):
         drop_remainder=False)
     evaluation_dataset = eval_input_fn()
     with strategy.scope():
-        loss,accuracy, matt_corr = model.evaluate(evaluation_dataset)
+        loss,accuracy = model.evaluate(evaluation_dataset)
 
-    print(f"loss : {loss}, Accuracy : {accuracy}, Matthew's Corr: {matt_corr}")
+    print(f"loss : {loss}, Accuracy : {accuracy}")
     output_metrics_file = os.path.join(FLAGS.output_dir, "eval_metrics.tsv")
     with tf.io.gfile.GFile(output_metrics_file, "w") as pred_writer:
       pred_writer.write('loss: {}\n'.format(loss))
       pred_writer.write('Accuracy: {}\n'.format(loss))
-      pred_writer.write("Matthew's Corr: {}\n".format(loss))
 
     with strategy.scope():
       logits = model.predict(evaluation_dataset)

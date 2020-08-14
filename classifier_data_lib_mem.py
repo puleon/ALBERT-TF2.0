@@ -733,7 +733,7 @@ def convert_single_example(ex_index, example, label_list, max_seq_length,
   assert len(input_mask) == max_seq_length
   assert len(segment_ids) == max_seq_length
 
-  if FLAGS.classification_task_name.lower() != "sts":
+  if FLAGS.task_name.lower() != "sts":
     label_id = label_map[example.label]
   else:
     label_id = example.label

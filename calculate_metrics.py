@@ -52,7 +52,8 @@ def main(_):
     label_list = processor.get_labels()
     for (i, label) in enumerate(label_list):
       label_map[label] = i
-    labels = [label_map[el] for el in eval_examples]
+
+    labels = [label_map[el.label] for el in eval_examples]
 
     predictions = []
     with open(os.path.join(FLAGS.output_dir, 'eval_results.tsv')) as f:

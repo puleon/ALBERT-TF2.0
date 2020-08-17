@@ -20,6 +20,13 @@ flags.DEFINE_string(
     "The input data dir. Should contain the .tsv files (or other data files) "
     "for the task.")
 
+flags.DEFINE_bool(
+    "do_lower_case", True,
+    "Whether to lower case the input text. Should be True for uncased "
+    "models and False for cased models.")
+
+
+
 def main(_):
     processors = {
     "cola": classifier_data_lib_mem.ColaProcessor,

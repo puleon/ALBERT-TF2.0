@@ -48,7 +48,7 @@ def main(_):
 
     eval_examples = processor.get_dev_examples(FLAGS.input_data_dir)
 
-    labels = [el.label for el in eval_examples]
+    labels = [int(el.label) for el in eval_examples]
 
     predictions = []
     with open(os.path.join(FLAGS.output_dir, 'eval_results.tsv')) as f:

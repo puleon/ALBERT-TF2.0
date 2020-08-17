@@ -51,7 +51,7 @@ def main(_):
 
     predictions = []
     with open(os.path.join(FLAGS.output_dir, 'eval_results.tsv')) as f:
-        reader = csv.reader(f, '\t')
+        reader = csv.reader(f, delimiter='\t')
         for el in reader:
             predictions.append([float(x) for x in el])
 

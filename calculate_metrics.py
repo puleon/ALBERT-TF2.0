@@ -2,6 +2,7 @@ from absl import app, flags, logging
 import os
 import csv
 from sklearn.metrics import accuracy_score, f1_score, matthews_corrcoef
+import numpy as np
 
 import classifier_data_lib_mem
 
@@ -54,6 +55,7 @@ def main(_):
         reader = csv.reader(f, delimiter='\t')
         for el in reader:
             predictions.append([float(x) for x in el])
+    predictions = np.argmax(np.array(predictions), axis=-1)
 
     print('accuracy_score:', accuracy_score(labels, predictions))
     print('f1_score:', f1_score(labels, predictions))

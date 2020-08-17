@@ -26,7 +26,6 @@ flags.DEFINE_bool(
     "models and False for cased models.")
 
 
-
 def main(_):
     processors = {
     "cola": classifier_data_lib_mem.ColaProcessor,

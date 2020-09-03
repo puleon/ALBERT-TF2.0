@@ -159,8 +159,9 @@ class AlbertModel(tf.keras.layers.Layer):
   ```
   """
 
-  def __init__(self, config, float_type=tf.float32, **kwargs):
+  def __init__(self, mem_size, config, float_type=tf.float32, **kwargs):
     super(AlbertModel, self).__init__(**kwargs)
+    self.mem_size = mem_size
     self.config = (
         AlbertConfig.from_dict(config)
         if isinstance(config, dict) else copy.deepcopy(config))
@@ -241,7 +242,7 @@ class AlbertModel(tf.keras.layers.Layer):
           embedding_tensor, attention_mask, return_all_layers=True)
 
     sequence_output = self.encoder(embedding_tensor, attention_mask)
-    first_token_tensor = tf.squeeze(sequence_output[:, 0:1, :], axis=1)
+    first_token_tensor = tf.squeeze(sequence_output[:, self.mem_size:self.mem_size+1, :], axis=1)
     pooled_output = self.pooler_transform(first_token_tensor)
     return (pooled_output, sequence_output)
 

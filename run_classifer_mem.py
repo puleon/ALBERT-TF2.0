@@ -197,7 +197,7 @@ def get_model(albert_config, max_seq_length, num_labels, init_checkpoint, learni
     input_type_ids = tf.keras.layers.Input(
         shape=(max_seq_length,), dtype=tf.int32, name='input_type_ids')
 
-    albert_layer = AlbertModel(config=albert_config, float_type=float_type)
+    albert_layer = AlbertModel(mem_size=FLAGS.mem_size, config=albert_config, float_type=float_type)
 
     pooled_output, _ = albert_layer(input_word_ids, input_mask, input_type_ids)
 

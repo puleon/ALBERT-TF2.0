@@ -159,12 +159,13 @@ class AlbertModel(tf.keras.layers.Layer):
   ```
   """
 
-  def __init__(self, config, float_type=tf.float32, **kwargs):
+  def __init__(self, mem_size, config, float_type=tf.float32, **kwargs):
     super(AlbertModel, self).__init__(**kwargs)
     self.config = (
         AlbertConfig.from_dict(config)
         if isinstance(config, dict) else copy.deepcopy(config))
     self.float_type = float_type
+    self.mem_size = mem_size
 
   def build(self, unused_input_shapes):
     """Implements build() for the layer."""

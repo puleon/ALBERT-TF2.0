@@ -99,7 +99,7 @@ flags.DEFINE_integer(
     "Sequences longer than this will be truncated, and sequences shorter "
     "than this will be padded.")
 
-flags.DEFINE_integer("mem_size", 20, "Maximum sequence length.")
+flags.DEFINE_integer("mem_size", 0, "Maximum sequence length.")
 
 flags.DEFINE_float("classifier_dropout",0.1,"classification layer dropout")
 
